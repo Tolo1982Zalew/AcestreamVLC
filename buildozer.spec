@@ -1,55 +1,40 @@
 [app]
-
-# Podstawowe informacje
 title = AcestreamVLC
 package.name = acestreamvlc
 package.domain = org.acestream
-
-# Wersja
-version = 1.0
-
-# Kod źródłowy
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-
-# Główny plik
+version = 1.0
+requirements = python3==3.9.0,hostpython3==3.9.0,kivy==2.2.1,android
 source.main = main.py
-
-# Wymagania (KLUCZOWE - bez requests/bs4!)
-requirements = python3,kivy==2.3.0,urllib3,certifi
-
-# Ikona i presplash (opcjonalne)
-#icon.filename = %(source.dir)s/icon.png
-#presplash.filename = %(source.dir)s/presplash.png
-
-# Orientacja
 orientation = portrait
+fullscreen = 0
 
-# Uprawnienia Android (KLUCZOWE!)
-android.permissions = INTERNET,ACCESS_NETWORK_STATE,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+# Permissions
+android.permissions = INTERNET,ACCESS_NETWORK_STATE
 
-# API Android
-android.api = 31
+# Android config
+android.api = 33
 android.minapi = 21
-android.ndk = 25b
-android.sdk = 31
+android.ndk = 25c
+android.archs = arm64-v8a
+android.allow_backup = True
+android.accept_sdk_license = True
 
-# Architektura
-android.archs = arm64-v8a,armeabi-v7a
+# Package
+android.name = AcestreamVLC
+android.entrypoint = org.kivy.android.PythonActivity
+android.apptheme = @android:style/Theme.NoTitleBar
 
-# Nazwa wyświetlana
-android.name = Acestream VLC
+# Build
+p4a.bootstrap = sdl2
+p4a.branch = master
+android.gradle_dependencies = 
 
-# Dopuszczenie HTTP (WAŻNE dla Acestream!)
-android.add_manifest_application = <uses-library android:name="org.apache.http.legacy" android:required="false" />
-android.add_manifest = <uses-permission android:name="android.permission.INTERNET" />
+# Skip unnecessary updates
+android.skip_update = False
+android.ant_path = 
 
 [buildozer]
-
-# Logi
 log_level = 2
 warn_on_root = 1
-
-# Cache
-android.gradle_dependencies = 
-android.enable_androidx = True
