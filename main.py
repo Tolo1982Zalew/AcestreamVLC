@@ -1,4 +1,4 @@
-# main.py - KOMPLETNA WERSJA z auto-otwieraniem VLC
+# main.py - KOMPLETNA WERSJA dla Androida (bez requests!)
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -13,7 +13,7 @@ from kivy.core.window import Window
 from kivy.core.clipboard import Clipboard
 
 from scraper import get_acestream_links
-import requests
+import urllib.request  # ← ZMIANA: zamiast requests
 import threading
 import subprocess
 import platform
@@ -218,11 +218,13 @@ class AcestreamApp(App):
             for port in self.acestream_ports:
                 try:
                     url = f"http://127.0.0.1:{port}/webui/api/service"
-                    response = requests.get(url, timeout=1)
-                    if response.status_code == 200:
-                        self.acestream_url = f"http://127.0.0.1:{port}"
-                        Clock.schedule_once(lambda dt: self._update_engine_status(port, True), 0)
-                        return
+                    # ← ZMIANA: urllib zamiast requests
+                    req = urllib.request.Request(url)
+                    with urllib.request.urlopen(req, timeout=1) as response:
+                        if response.status == 200:
+                            self.acestream_url = f"http://127.0.0.1:{port}"
+                            Clock.schedule_once(lambda dt: self._update_engine_status(port, True), 0)
+                            return
                 except:
                     continue
 
@@ -678,6 +680,5 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"[FATAL ERROR] {e}")
         import traceback
-
         traceback.print_exc()
         input("Naciśnij Enter aby zamknąć...")
