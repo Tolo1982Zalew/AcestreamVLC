@@ -1,0 +1,63 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev \
+          python3-pip
+
+    - name: Install buildozer
+      run: |
+        pip3 install --upgrade pip
+        pip3 install --upgrade buildozer cython
+
+    - name: Build APK with buildozer
+      run: |
+        buildozer android debug
+      env:
+        ANDROID_HOME: /usr/local/lib/android/sdk
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: acestreamvlc-debug-apk
+        path: bin/*.apk
+        retention-days: 30
+
+    - name: Show APK info
+      run: |
+        ls -lh bin/
+        echo "APK build completed successfully!"
