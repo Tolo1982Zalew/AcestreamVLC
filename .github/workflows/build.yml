@@ -7,16 +7,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.9'
 
     - name: Install system dependencies
       run: |
@@ -27,6 +27,7 @@ jobs:
           zip \
           unzip \
           openjdk-17-jdk \
+          wget \
           autoconf \
           libtool \
           pkg-config \
@@ -37,27 +38,48 @@ jobs:
           cmake \
           libffi-dev \
           libssl-dev \
-          python3-pip
+          ccache \
+          automake
 
-    - name: Install buildozer
+    - name: Cache buildozer
+      uses: actions/cache@v4
+      with:
+        path: |
+          .buildozer
+          ~/.buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
+    - name: Install Python dependencies
       run: |
-        pip3 install --upgrade pip
-        pip3 install --upgrade buildozer cython
+        python -m pip install --upgrade pip
+        pip install --upgrade buildozer cython virtualenv
 
     - name: Build APK with buildozer
       run: |
-        buildozer android debug
-      env:
-        ANDROID_HOME: /usr/local/lib/android/sdk
+        yes | buildozer android debug || buildozer android debug
+      timeout-minutes: 60
 
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+    - name: List built files
+      run: |
+        echo "=== Checking bin directory ==="
+        ls -lah bin/ || echo "No bin directory"
+        echo "=== Finding APK files ==="
+        find . -name "*.apk" -type f
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
       with:
-        name: acestreamvlc-debug-apk
+        name: acestreamvlc-apk
         path: bin/*.apk
         retention-days: 30
+        if-no-files-found: error
 
-    - name: Show APK info
+    - name: Build summary
+      if: success()
       run: |
-        ls -lh bin/
-        echo "APK build completed successfully!"
+        echo "✅ APK built successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📦 APK files:" >> $GITHUB_STEP_SUMMARY
+        ls -lh bin/*.apk >> $GITHUB_STEP_SUMMARY || echo "No APK found"
